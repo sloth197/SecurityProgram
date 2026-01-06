@@ -26,22 +26,31 @@
 
                 <!--Menu Buttons-->
                 <Button Content = "파일 암호화"
+                        Command = "{Binding ShowEncryptionCommand}"
                         Height = "45"
                         Margin = "10"
                         Foreground = "white"/>
+
                 <Button Content = "이벤트 로그"
+                        Command = "{Binding ShowEventLogCommand}"
                         Height = "45"
                         Margin = "10"
                         Foreground = "white"/>
+
                 <Button Content = "비밀번호 분석"
+                        Command = "{Binding ShowPasswordCommand}"
                         Height = "45"
                         Margin = "10"
                         Foreground = "white"/>
+
                 <Button Content = "로컬 네트워크 포트"
+                        Command = "{Binding ShowNetworkCommand}"
                         Height = "45"
                         Margin = "10"
                         Foreground = "white"/>
+
                 <Button Content = "보고서 생성"
+                        Command = "{Binding ShowReportCommand}"
                         Height = "45"
                         Margin = "10"
                         Foreground = "white"/>
@@ -51,7 +60,7 @@
                 Background = "#F5F5F7"
                 Padding = "20" >
             <!--Add User Control -->
-            <ContentControl />
+            <ContentControl Content = "{Binding CurrentView}" />
         </Border>
     </Grid>
 </Window>
