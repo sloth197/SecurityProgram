@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Runtime.COmpilerServices;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using SecurityProgram.App.Commands;
 using SecurityProgram.App.Views;
@@ -8,14 +8,14 @@ namespace SecurityProgram.App.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private object _currentView;
+        private object _currentViewModel;
 
-        public object _currentView
+        public object _currentViewModel
         {
-            get => _currentView;
+            get => _currentViewModel;
             set
             {
-                _currentView = value;
+                _currentViewModel = value;
                 OnPropertyChanged()
             }
         }
@@ -27,12 +27,12 @@ namespace SecurityProgram.App.ViewModels
 
         public MainViewModel()
         {
-            CurrentView = new EncryptionView();
-            ShowEncryptionCommand = new RelayCommand(_ => CurrentView = new EncryptionView());
-            ShowEventLogCommand = new RelayCommand(_ => CurrentView = new EventLogView());
-            ShowPasswordCommand = new RelayCommand(_ => CurrentView = new PasswordView());
-            ShowNetworkCommand = new RelayCommand(_ => CurrentView = new NetworkView());
-            ShowReportCommand = new RelayCommand(_ => CurrentView = new ReportView());        
+            CurrentViewModel = new EncryptionViewModel();
+            ShowEncryptionCommand = new RelayCommand(_ => CurrentViewModel = new EncryptionViewModel());
+            ShowEventLogCommand = new RelayCommand(_ => CurrentViewModel = new EventLogViewModel());
+            ShowPasswordCommand = new RelayCommand(_ => CurrentViewModel = new PasswordViewModel());
+            ShowNetworkCommand = new RelayCommand(_ => CurrentViewModel = new NetworkViewModel());
+            ShowReportCommand = new RelayCommand(_ => CurrentViewModel = new ReportViewModel());        
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

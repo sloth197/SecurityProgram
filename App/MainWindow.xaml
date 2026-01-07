@@ -6,6 +6,30 @@
         Width="1100"
         WindowStartupLocation="CenterScreen">
 
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <!-- NN ViewModel -> View Auto Matching-->
+    <Window.Resources>
+        <DataTemplate DataType = "{x:Type vm:EncryptionViewModel}">
+            <view:EncryptionView />
+        </DataTemplate>
+        <DataTemplate DataType = "{x:Type vm:EventLogViewModel}">
+            <view:EventLogView />
+        </DataTemplate>
+        <DataTemplate DataType = "{x:Type vm:PasswordViewModel}">
+            <view:PasswordView />
+        </DataTemplate>
+        <DataTemplate DataType = "{x:Type vm:NetworkViewModel}">
+            <view:NetworkView />
+        </DataTemplate>
+        <DataTemplate DataType = "{x:Type vm:ReportViewModel}">
+            <view:ReportView />
+        </DataTemplate>
+    </Window.Resources>
+
+
     <Grid>
         <!--Whole Layout-->
         <Grid.ColumnDefinitions>
@@ -14,6 +38,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinition>
 
+        <!--Left Layout-->
         <Border Grid.Column="0" BackGround="#1E1E2D">
             <StackPanel>
 
@@ -56,6 +81,8 @@
                         Foreground = "white"/>
             </StackPanel>
         </Border>
+
+        <!--Right Layout-->
         <Border Grid.Column = "1"
                 Background = "#F5F5F7"
                 Padding = "20" >
