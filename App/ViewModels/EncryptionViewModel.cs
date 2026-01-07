@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.Win32;
 using SecurityProgram.App.Commands;
+using SecurityProgram.App.Core.Encryption;
 
 namespace SecurityProgram.App.ViewModels
 {
@@ -12,6 +13,7 @@ namespace SecurityProgram.App.ViewModels
         private string _selectedFilePath;
         private string _statusMessage;
         private string _password;
+        private readonly AesFileCryptoService _cryptoService = new();
         //Add Status
         public string _selectedFilePath
         {
@@ -71,9 +73,17 @@ namespace SecurityProgram.App.ViewModels
             {
                 StatusMessage = "비밀번호 입력해주쇼";
                 return;
-            }     
+            }  
+            try
+            {
+                _cryptoService.EncryptFile(SelectedFilePath, Password);
+                StatusMessage = "파일 암호화 했슴당"
+            }
+            catch 
+            {
+                StatusMessage = "하다가 오류 걸림 ㅜ"
+            }   
         }
-            StatusMessage = "구현 아직 못함 ㅜㅜ";
     
         private void Decrypt()
         {
@@ -87,7 +97,15 @@ namespace SecurityProgram.App.ViewModels
                 StatusMessage = "비밀번호 입력해주쇼";
                 return;
             }
-            StatusMessage = "얘도 아직 구현 못함 ㅜㅜ"
+            try
+            {
+                _CryptoService.DecryptFile(SelectedFilePath, Password);
+                StatusMessage = "파일 복호화 완료 했슴당";
+            }
+            catch
+            {
+                StatusMessage = "실패함 ㅜㅜ 비밀번호 확인 좀 하쇼"
+            }
         }
         public event PropertyChangedEventHandler  PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(rhis, new PropertyChangedEventArgs(name));
