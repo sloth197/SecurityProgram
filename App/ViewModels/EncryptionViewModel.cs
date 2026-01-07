@@ -108,6 +108,6 @@ namespace SecurityProgram.App.ViewModels
             }
         }
         public event PropertyChangedEventHandler  PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(rhis, new PropertyChangedEventArgs(name));
+        private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
