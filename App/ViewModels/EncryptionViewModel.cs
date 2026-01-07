@@ -4,6 +4,7 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using SecurityProgram.App.Commands;
 using SecurityProgram.App.Core.Encryption;
+using SecurityProgram.App.Core.Security;
 
 namespace SecurityProgram.App.ViewModels
 {
@@ -14,6 +15,9 @@ namespace SecurityProgram.App.ViewModels
         private string _statusMessage;
         private string _password;
         private readonly AesFileCryptoService _cryptoService = new();
+        private int _passwordScore;
+        private string _passwordLevel;
+
         //Add Status
         public string _selectedFilePath
         {
@@ -33,12 +37,16 @@ namespace SecurityProgram.App.ViewModels
                 OnPropertyChanged();
             }   
         }
-        public string Password{
+        public string Password
+        {
             get => _password;
             set
             {
                 _password = value;
                 OnPropertyChanged();
+
+                PasswordScore = PasswordStrengthEvaluator.Evalaute(value);
+                PasswordLevel = PasswordStrengthEvaluateor.GetLevel(PasswordScore);
             }
         }
 
@@ -105,6 +113,24 @@ namespace SecurityProgram.App.ViewModels
             catch
             {
                 StatusMessage = "실패함 ㅜㅜ 비밀번호 확인 좀 하쇼"
+            }
+        }
+        public int _passwordScore
+        {
+            get => _passwordScore;
+            set
+            {
+                _passwordScorre = value;
+                OnPropertyChanged();
+            }
+        }
+        public string _PasswordLevel
+        {
+            get => _passwordLevel;
+            set
+            {
+                _passwordLevel = value;
+                OnPropertyChanged();
             }
         }
         public event PropertyChangedEventHandler  PropertyChanged;

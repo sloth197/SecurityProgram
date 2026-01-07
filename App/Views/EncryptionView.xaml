@@ -42,6 +42,17 @@
                 <PasswordBox Height = "32"
                              Margin = "0,5,0,20"
                              behaviors:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}" />
+                
+                <!--Password Intensity-->
+                <ProgressBar Minimum = "0"
+                             Maximum = "100"
+                             Heigth = "18"
+                             Value = "{Binding PasswordScore}"
+                             Margin = "0,5,0,5" />
+                <TextBlock Text = "{Binding PasswordLevel}"
+                           FontWeight = "SemiBold"
+                           Foreground = "DarkGray"
+                           Margin = "0,0,0,15" />
             
                 <!--Button-->
                 <StackPanel Orientation = "Horizontal"
