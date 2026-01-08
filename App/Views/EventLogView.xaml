@@ -46,6 +46,16 @@
                 <DataGridTextColumn Header = "Message" 
                                     Binding = "{Binding Message}"
                                     Width = "*" />
+                <!--이벤트ID 데이터를 화면에 표시-->
+                <DataGridTextColumn Header = "Event ID"
+                                    Binding = "{Binding EventId}"
+                                    Width = "90" />
+                <!--Event ID
+                    4625 : login fail (로그인 실패)
+                    4624 : login sucess (로그인 성공)
+                    4672 : Admin privileges login (관리자 권한 로그인)
+                    4720 : Create User account (사용자 계정 생성)
+                -->
             </DataGridColumns>
         </DataGrid>
     </Grid>

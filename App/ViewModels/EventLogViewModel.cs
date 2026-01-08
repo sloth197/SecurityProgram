@@ -48,7 +48,8 @@ namespace SecurityProgram.App.ViewModels
             _monitorService.AllowedTypes.Add(EventLogEntryType.Warning);
         else if (_showFailure)
             _monitorService.AllowedTypes.Add(EventLogEntryType.FailureAudit);
-        FilterInfo = $"표시 중: " +
+        
+        FilterInfo = $"표시 중: login fail(4625)" +
                      $"{ShowError ? "Error " : ""}" +
                      $"{ShowWarning ? "Warning " : ""}" +
                      $"{ShowFailure ? "Failure " : ""}" ;          
@@ -83,7 +84,7 @@ namespace SecurityProgram.App.ViewModels
             get => _filterInfo;
             set
             {
-                _filterInfor = value;
+                _filterInfo = value;
                 OnPropertyChanged();
             }
         } 

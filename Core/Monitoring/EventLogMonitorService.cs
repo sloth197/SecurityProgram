@@ -23,18 +23,24 @@ namespace SecurityProgram.Core.Monitoring
             _eventlog.EntryWritten -= EventLog_EntryWritten;
             _eventlog.EnableRaisingEvents = false;
         }
-        //EventLog written -> send a message 
+        //EventLog written -> send a message  
         private void EventLog_EntryWritten(object sender, EntryWrittenEventArgs e)
         {
             if (!AllowedTypes.Contains(e.Entry.EntryType))
                 return;
             var entry = e.Entry;
+            //Modify filter logic
+            if (AllowedEventIds.Any() && ! AllowedEventIds.Contains(entry.InstanceId > int.MaxValue ? unchecked((int)entry.InstanceId) : (int)entry.InstanceId))
+                return;
+
             OnEventReceived?.Invoke(new EventLogItem
             {
                 TimeGenerated = entry.TimeGenerted,
                 Source = entry.Source,
                 EntryType = entry.EntryType.ToString(),
-                Message = entry.Message
+                Message = entry.Message,
+                //InstanceId : long -> int
+                EventId = (int)entry.InstanceId
             });
         }
         //허락(특정의)된 이벤트로그의 타입이 화면에 표시
@@ -44,5 +50,10 @@ namespace SecurityProgram.Core.Monitoring
             EventLogEntryType.Warning,
             EventLogEntryType.FailureAudit
         };
+        //Add Filter Collection (Id)
+        public HashSet<int> AllowedEventIds { get; } = new()
+        {
+            4625; //Login fail
+        }
     }
 }
