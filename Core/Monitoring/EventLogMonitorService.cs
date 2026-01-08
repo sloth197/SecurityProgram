@@ -23,8 +23,11 @@ namespace SecurityProgram.Core.Monitoring
             _eventlog.EntryWritten -= EventLog_EntryWritten;
             _eventlog.EnableRaisingEvents = false;
         }
+        //EventLog written -> send a message 
         private void EventLog_EntryWritten(object sender, EntryWrittenEventArgs e)
         {
+            if (!_allowedTypes.Contains(e.Entry.EntryType))
+                return;
             var entry = e.Entry;
             OnEventReceived?.Invoke(new EventLogItem
             {
@@ -34,5 +37,12 @@ namespace SecurityProgram.Core.Monitoring
                 Message = entry.Message
             });
         }
+        //허락(특정의)된 이벤트로그의 타입이 화면에 표시
+        private readonly HashSet<EventLogEntryType> _allowedTypes = new()
+        {
+            EventLogEntryType.Error,
+            EventLogEntryType.Warning,
+            EventLogEntryType.FailureAudit
+        };
     }
 }

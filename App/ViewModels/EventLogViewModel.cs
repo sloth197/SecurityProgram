@@ -26,5 +26,15 @@ namespace SecurityProgram.App.ViewModels
                 }
             });
         }
+        //display filter status
+        private string _filterInfo = "표시: 오류 / 실패 / 경고";
+        public string _filterInfo{
+            get => _filterInfo;
+            set
+            {
+                _filterInfor = value;
+                OnPropertyChanged();
+            }
+        } 
     }
 }
