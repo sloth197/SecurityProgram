@@ -42,6 +42,14 @@
                 <PasswordBox Height = "32"
                              Margin = "0,5,0,20"
                              behaviors:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay}" />
+
+                <!-- User Info Message-->
+                <TextBlock Text = "인간적으로 보안 강도는 중간이어야함다"
+                           FontSize = "11"
+                           Foreground = "DarkRed"
+                           Visibility = "{Binding CanEncrypt,
+                                          Converter = {StaticResource BooleanToVisibilityConverter},
+                                          ConverterParameter = invert}" />
                 
                 <!--Password Intensity-->
                 <ProgressBar Minimum = "0"
@@ -62,6 +70,7 @@
                             Width = "120"
                             Height = "40"
                             Margin = "0,0,10,0"
+                            IsEnabled = "{Binding CanEncrypt}"
                             Command = "{Binding EncryptCommand}" /> 
 
                     <!--복호화 버튼-->
@@ -69,7 +78,7 @@
                             Width = "120"
                             Height = "40"
                             Margin = "0,0,10,0"
-                            Command = "{Binding DecryptCommand}" />
+                            IsEnabled = "{Binding CanEncrypt}"                     Command = "{Binding DecryptCommand}" />
                 </StackPanel>
 
                 <!--Status Message-->

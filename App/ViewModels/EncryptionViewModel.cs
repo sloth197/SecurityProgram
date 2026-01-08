@@ -8,6 +8,9 @@ using SecurityProgram.App.Core.Security;
 
 namespace SecurityProgram.App.ViewModels
 {
+    //상수 추가 -> 어디에 추가해야하노.. 
+    private const int MinimumPasswordScore = 60;
+
     public class EncryptionViewModel : INotifyPropertyChanged
     {
         //Add Field 
@@ -17,6 +20,8 @@ namespace SecurityProgram.App.ViewModels
         private readonly AesFileCryptoService _cryptoService = new();
         private int _passwordScore;
         private string _passwordLevel;
+        private bool _canEncrypt;
+        
 
         //Add Status
         public string _selectedFilePath
@@ -47,6 +52,17 @@ namespace SecurityProgram.App.ViewModels
 
                 PasswordScore = PasswordStrengthEvaluator.Evalaute(value);
                 PasswordLevel = PasswordStrengthEvaluateor.GetLevel(PasswordScore);
+
+                CanEncrypt = PasswordScore >= MinimumPasswordScore;
+            }
+        }
+        public bool _canEncrypt
+        {
+            get => _canEncrypt;
+            set
+            {
+                _canEncrypt = value;
+                OnPropertyChanged();
             }
         }
 
@@ -70,6 +86,7 @@ namespace SecurityProgram.App.ViewModels
                 StatusMessage = "파일 선택 완료";
             }
         }
+        // 파일 암호화
         private void Encrypt()
         {
             if(string.IsNullOrEmpty(SelectedFilePath))
@@ -82,6 +99,11 @@ namespace SecurityProgram.App.ViewModels
                 StatusMessage = "비밀번호 입력해주쇼";
                 return;
             }  
+            else if (!CanEncrypt)
+            {
+                StatusMessage = "비밀번호가 너무 쉽당 응 너 차단";
+                return;
+            }
             try
             {
                 _cryptoService.EncryptFile(SelectedFilePath, Password);
@@ -92,7 +114,7 @@ namespace SecurityProgram.App.ViewModels
                 StatusMessage = "하다가 오류 걸림 ㅜ"
             }   
         }
-    
+        //파일 복호화
         private void Decrypt()
         {
             if(string.IsNullOrEmpty(SelectedFilePath))
@@ -103,6 +125,11 @@ namespace SecurityProgram.App.ViewModels
             else if (string.IsNullOrWhiteSpace(Password))
             {
                 StatusMessage = "비밀번호 입력해주쇼";
+                return;
+            }
+            else if (!CanDecrypt)
+            {
+                StatusMessage = "비밀번호가 너무 쉽당 응 너 차단";
                 return;
             }
             try
@@ -133,7 +160,7 @@ namespace SecurityProgram.App.ViewModels
                 OnPropertyChanged();
             }
         }
-        public event PropertyChangedEventHandler  PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

@@ -36,7 +36,7 @@
             <ColumnDefinition Width="220"/>
             <!--Main Layout-->
             <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinition>
+        </Grid.ColumnDefinitions>
 
         <!--Left Layout-->
         <Border Grid.Column="0" BackGround="#1E1E2D">

@@ -6,9 +6,9 @@ namespace SecurityProgram.App.Behaviors
     public static class PasswordBoxHelper
     {
         public static readonly DependencyProperty BoundPasswordProperty = DependencyProperty.RegisterAttached("BoundPassword",
-                          typeof(string),
-                          typeof(PasswordBoxHelper),
-                          new PropertyMetadata(string.Empty, OnBoundPasswordChanged));
+            typeof(string),
+            typeof(PasswordBoxHelper),
+            new PropertyMetadata(string.Empty, OnBoundPasswordChanged));
         public static string GetBoundPassword(DependencyObject obj)
             => (string)obj.GetValue(BoundPasswordProperty);
         public static void SetBoundPassword(DependencyObject obj, string value)
@@ -21,7 +21,7 @@ namespace SecurityProgram.App.Behaviors
             {
                 passwordBox.PasswordChanged -= PasswordBox_PasswordChanged;
                 if(!passwordBox.Password.Equals(e.NewVaule))
-                    passwordBox.Password = e.NewVAule?.ToString();
+                    passwordBox.Password = e.NewVaule?.ToString();
                     passwordBox.PasswordChanged += PasswordBox_PasswordChanged;
             }
         }
@@ -29,7 +29,7 @@ namespace SecurityProgram.App.Behaviors
         {
             if(sender is PasswordBox passwordBox)
             {
-                SetBoundPAssword(passwrodBox, passwordBox.Password);
+                SetBoundPassword(passwordBox, passwordBox.Password);
             }
         }
     }

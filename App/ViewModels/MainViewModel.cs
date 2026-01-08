@@ -22,7 +22,7 @@ namespace SecurityProgram.App.ViewModels
         public ICommand ShowEncryptionCommand {get;}
         public ICommand ShowEventLogCommand {get;}
         public ICommand ShowPasswordCommand {get;}
-        public ICommand SowNetworkCommand {get;}
+        public ICommand ShowNetworkCommand {get;}
         public ICommand ShowReportCommand {get;}
 
         public MainViewModel()
