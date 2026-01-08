@@ -1,6 +1,30 @@
-namespace SecurityProgram.App.ViewModels{
-    public class EventLogViewModel
+using System.Collections.ObjectModel;
+using SecurityProgram.Core.Monitoring;
+using SecurityProgram.App.Models;
+
+namespace SecurityProgram.App.ViewModels
+{
+    public class EventLogViewModel : ViewModelBase
     {
-        TODO: 
+        private readonly EventLogMonitorService _monitorService;
+        public ObservableCollection<EventLogItem> Events { get; } = new();
+        //Start Monitoring
+        public EventLogViewModel()
+        {
+            _monitorService = new EventLogMonitorService();
+            _monitorService.OnEventReceived += AddEvent;
+            _monitorService.Start();
+        }
+        private void AddEvent(EventLogItem item)
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                Events.Insert(0, item);
+                if (Events.Count > 200)
+                {
+                    Events.RemoveAt(Events.Count - 1);
+                }
+            });
+        }
     }
 }
