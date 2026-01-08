@@ -26,7 +26,7 @@ namespace SecurityProgram.Core.Monitoring
         //EventLog written -> send a message 
         private void EventLog_EntryWritten(object sender, EntryWrittenEventArgs e)
         {
-            if (!_allowedTypes.Contains(e.Entry.EntryType))
+            if (!AllowedTypes.Contains(e.Entry.EntryType))
                 return;
             var entry = e.Entry;
             OnEventReceived?.Invoke(new EventLogItem
@@ -38,7 +38,7 @@ namespace SecurityProgram.Core.Monitoring
             });
         }
         //허락(특정의)된 이벤트로그의 타입이 화면에 표시
-        private readonly HashSet<EventLogEntryType> _allowedTypes = new()
+        public HashSet<EventLogEntryType> _allowedTypes { get; }= new()
         {
             EventLogEntryType.Error,
             EventLogEntryType.Warning,

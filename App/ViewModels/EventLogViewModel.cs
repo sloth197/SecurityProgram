@@ -4,6 +4,57 @@ using SecurityProgram.App.Models;
 
 namespace SecurityProgram.App.ViewModels
 {
+    //Add checkbox status
+    private bool _showError = true;
+    private bool _showWarning = true;
+    private bool _showFailure = true;
+    public bool _showError
+    {
+        get => _showError;
+        set
+        {
+            _showError = value;
+            UpdateFilters();
+            OnPropertyChanged();
+        }
+    }
+    public bool _showWarning
+    {
+        get => _showWarning;
+        set
+        {
+            _showWarning = value;
+            UpdateFilters();
+            OnPropertyChanged();
+        }
+    }
+    public bool _showFailure
+    {
+        get => _showFailure;
+        set
+        {
+            _showFailure = value;
+            UpdateFilters();
+            OnPropertyChanged();
+        }
+    }
+    //Update filter status
+    private void UpdateFilters()
+    {
+        _monitorService.AllowedTypes.Clear();
+        if (_showError)
+            _monitorService.AllowedTypes.Add(EventLogEntryType.Error);
+        else if (_showWarning)
+            _monitorService.AllowedTypes.Add(EventLogEntryType.Warning);
+        else if (_showFailure)
+            _monitorService.AllowedTypes.Add(EventLogEntryType.FailureAudit);
+        FilterInfo = $"표시 중: " +
+                     $"{ShowError ? "Error " : ""}" +
+                     $"{ShowWarning ? "Warning " : ""}" +
+                     $"{ShowFailure ? "Failure " : ""}" ;          
+        UpdateFilters();
+    }
+
     public class EventLogViewModel : ViewModelBase
     {
         private readonly EventLogMonitorService _monitorService;
