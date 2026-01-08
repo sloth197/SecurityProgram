@@ -67,14 +67,14 @@ namespace SecurityProgram.App.ViewModels
             _monitorService.OnEventReceived += AddEvent;
             _monitorService.Start();
         }
-        private void AddEvent(EventLogItem item)
+        private void OnEventReceived(EventLogItem item)
         {
             App.Current.Dispatcher.Invoke(() =>
             {
-                Events.Insert(0, item);
-                if (Events.Count > 200)
+                EventLogs.Insert(0, item);
+                if (item.EventId == 4625)
                 {
-                    Events.RemoveAt(Events.Count - 1);
+                    HandlerFailedLogin();
                 }
             });
         }
@@ -88,5 +88,38 @@ namespace SecurityProgram.App.ViewModels
                 OnPropertyChanged();
             }
         } 
+    }
+    //Add Counter, Timer
+    private int _failedLoginCount = 0;
+    private DateTime _WindowStartTime = DateTime.Now;
+    //로그인 실패 누적 5회 ->  5분 제한 및 경고 메세지 
+    private const int FailedLoginThreshold =  5;
+    private readonly TimeSpan MonitoringWindow = TimeSpan.FromMinutes(5);
+    private string _alertMessage;
+    public string _alertMessage
+    {
+        get => _alertMessage;
+        set
+        {
+            _alertMessage = value;
+            OnPropertyChanged();
+        }
+    }
+    //accumulate fail handle
+    private void HandleFailedLogin()
+    {
+        var now = DateTime.Now;
+        //시간 초과시 초기화
+        if (now - _windowStartTime > MonitoringWindow)
+        {
+            _failedLoginCount = 0;
+            _windowStartTime = now;
+            AlertMessage = string.Empty;
+        }
+        _failedLoginCount++;
+        if (_failedLoginCount >= FailedLoginThreshold)
+        {
+            AlertMessage = $" 로그인 실패ㅜ {_failedLoginCount}회 발생 (Brute-force 공격 의심됨.) 5분간 로그인 제한.";
+        }
     }
 }
