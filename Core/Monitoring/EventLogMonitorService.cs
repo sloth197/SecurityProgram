@@ -1,59 +1,78 @@
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using SecurityProgram.App.Models;
 
-namespace SecurityProgram.Core.Monitoring
+namespace SecurityProgram.App.Core.Monitoring;
+
+public class EventLogMonitorService
 {
-    public class EventLogMonitorService
+    private EventLog? _eventLog;
+
+    public event Action<EventLogItem>? OnEventReceived;
+
+    public HashSet<EventLogEntryType> AllowedTypes { get; } = new()
     {
-        private EventLog _eventlog;
-        public event Action<EventLogItem> OnEventReceived;
+        EventLogEntryType.Error,
+        EventLogEntryType.Warning,
+        EventLogEntryType.FailureAudit,
+    };
 
-        //Monitoring Start
-        public void Start(String logName = "Security")
-        {
-            _eventlog = new EventLog(logName);
-            _eventlog.EntryWritten += EventLog_EntryWritten;
-            _eventlog.EnableRaisingEvents = true;
-        }
-        //Monitoring Stop
-        public void Stop()
-        {
-            if (_eventlog == null)
-                return;
-            _eventlog.EntryWritten -= EventLog_EntryWritten;
-            _eventlog.EnableRaisingEvents = false;
-        }
-        //EventLog written -> send a message  
-        private void EventLog_EntryWritten(object sender, EntryWrittenEventArgs e)
-        {
-            if (!AllowedTypes.Contains(e.Entry.EntryType))
-                return;
-            var entry = e.Entry;
-            //Modify filter logic
-            if (AllowedEventIds.Any() && ! AllowedEventIds.Contains(entry.InstanceId > int.MaxValue ? unchecked((int)entry.InstanceId) : (int)entry.InstanceId))
-                return;
+    public HashSet<int> AllowedEventIds { get; } = new() { 4625 };
 
-            OnEventReceived?.Invoke(new EventLogItem
-            {
-                TimeGenerated = entry.TimeGenerted,
-                Source = entry.Source,
-                EntryType = entry.EntryType.ToString(),
-                Message = entry.Message,
-                //InstanceId : long -> int
-                EventId = (int)entry.InstanceId
-            });
-        }
-        //허락(특정의)된 이벤트로그의 타입이 화면에 표시
-        public HashSet<EventLogEntryType> _allowedTypes { get; }= new()
+    public void Start(string logName = "Security")
+    {
+        Stop();
+
+        _eventLog = new EventLog(logName)
         {
-            EventLogEntryType.Error,
-            EventLogEntryType.Warning,
-            EventLogEntryType.FailureAudit
+            EnableRaisingEvents = true,
         };
-        //Add Filter Collection (Id)
-        public HashSet<int> AllowedEventIds { get; } = new()
+
+        _eventLog.EntryWritten += OnEntryWritten;
+    }
+
+    public void Stop()
+    {
+        if (_eventLog is null)
         {
-            4625; //Login fail
+            return;
         }
+
+        _eventLog.EntryWritten -= OnEntryWritten;
+        _eventLog.EnableRaisingEvents = false;
+        _eventLog.Dispose();
+        _eventLog = null;
+    }
+
+    private void OnEntryWritten(object sender, EntryWrittenEventArgs e)
+    {
+        var entry = e.Entry;
+        if (entry is null)
+        {
+            return;
+        }
+
+        if (AllowedTypes.Count > 0 && !AllowedTypes.Contains(entry.EntryType))
+        {
+            return;
+        }
+
+        var eventId = unchecked((int)entry.InstanceId);
+
+        if (AllowedEventIds.Any() && !AllowedEventIds.Contains(eventId))
+        {
+            return;
+        }
+
+        OnEventReceived?.Invoke(new EventLogItem
+        {
+            TimeGenerated = entry.TimeGenerated,
+            Source = entry.Source,
+            EntryType = entry.EntryType.ToString(),
+            Message = entry.Message,
+            EventId = eventId,
+        });
     }
 }

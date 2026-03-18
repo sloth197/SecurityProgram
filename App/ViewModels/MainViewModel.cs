@@ -1,41 +1,48 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using System;
 using System.Windows.Input;
 using SecurityProgram.App.Commands;
-using SecurityProgram.App.Views;
 
-namespace SecurityProgram.App.ViewModels
+namespace SecurityProgram.App.ViewModels;
+
+public class MainViewModel : ViewModelBase
 {
-    public class MainViewModel : INotifyPropertyChanged
+    private object? _currentViewModel;
+
+    private readonly EncryptionViewModel _encryptionViewModel = new();
+    private readonly EventLogViewModel _eventLogViewModel = new();
+    private readonly PasswordViewModel _passwordViewModel = new();
+    private readonly NetworkViewModel _networkViewModel = new();
+    private readonly ReportViewModel _reportViewModel;
+
+    public object? CurrentViewModel
     {
-        private object _currentViewModel;
+        get => _currentViewModel;
+        set => SetProperty(ref _currentViewModel, value);
+    }
 
-        public object _currentViewModel
-        {
-            get => _currentViewModel;
-            set
-            {
-                _currentViewModel = value;
-                OnPropertyChanged()
-            }
-        }
-        public ICommand ShowEncryptionCommand {get;}
-        public ICommand ShowEventLogCommand {get;}
-        public ICommand ShowPasswordCommand {get;}
-        public ICommand ShowNetworkCommand {get;}
-        public ICommand ShowReportCommand {get;}
+    public ICommand ShowEncryptionCommand { get; }
 
-        public MainViewModel()
-        {
-            CurrentViewModel = new EncryptionViewModel();
-            ShowEncryptionCommand = new RelayCommand(_ => CurrentViewModel = new EncryptionViewModel());
-            ShowEventLogCommand = new RelayCommand(_ => CurrentViewModel = new EventLogViewModel());
-            ShowPasswordCommand = new RelayCommand(_ => CurrentViewModel = new PasswordViewModel());
-            ShowNetworkCommand = new RelayCommand(_ => CurrentViewModel = new NetworkViewModel());
-            ShowReportCommand = new RelayCommand(_ => CurrentViewModel = new ReportViewModel());        
-        }
+    public ICommand ShowEventLogCommand { get; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEvertArgs(name));
+    public ICommand ShowPasswordCommand { get; }
+
+    public ICommand ShowNetworkCommand { get; }
+
+    public ICommand ShowReportCommand { get; }
+
+    public MainViewModel()
+    {
+        _reportViewModel = new ReportViewModel(
+            _passwordViewModel,
+            _networkViewModel,
+            _eventLogViewModel);
+
+        CurrentViewModel = _encryptionViewModel;
+
+        ShowEncryptionCommand = new RelayCommand(_ => CurrentViewModel = _encryptionViewModel);
+        ShowEventLogCommand = new RelayCommand(_ => CurrentViewModel = _eventLogViewModel);
+        ShowPasswordCommand = new RelayCommand(_ => CurrentViewModel = _passwordViewModel);
+        ShowNetworkCommand = new RelayCommand(_ => CurrentViewModel = _networkViewModel);
+        ShowReportCommand = new RelayCommand(_ => CurrentViewModel = _reportViewModel);
     }
 }

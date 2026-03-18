@@ -1,166 +1,139 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using System;
+using System.IO;
 using System.Windows.Input;
 using Microsoft.Win32;
 using SecurityProgram.App.Commands;
 using SecurityProgram.App.Core.Encryption;
 using SecurityProgram.App.Core.Security;
 
-namespace SecurityProgram.App.ViewModels
+namespace SecurityProgram.App.ViewModels;
+
+public class EncryptionViewModel : ViewModelBase
 {
-    //상수 추가 -> 어디에 추가해야하노.. 
     private const int MinimumPasswordScore = 60;
 
-    public class EncryptionViewModel : INotifyPropertyChanged
+    private readonly AesFileCryptoService _cryptoService = new();
+
+    private string _selectedFilePath = string.Empty;
+    private string _statusMessage = "Choose a file to start.";
+    private string _password = string.Empty;
+    private int _passwordScore;
+    private string _passwordLevel = "Weak";
+
+    public string SelectedFilePath
     {
-        //Add Field 
-        private string _selectedFilePath;
-        private string _statusMessage;
-        private string _password;
-        private readonly AesFileCryptoService _cryptoService = new();
-        private int _passwordScore;
-        private string _passwordLevel;
-        private bool _canEncrypt;
-        
+        get => _selectedFilePath;
+        set
+        {
+            if (SetProperty(ref _selectedFilePath, value))
+            {
+                UpdateCommandState();
+            }
+        }
+    }
 
-        //Add Status
-        public string _selectedFilePath
-        {
-            get => _selectedFilePath;
-            set
-            {
-                _selectedFilePath = value;
-                OnPropertyChanged();
-            }
-        }
-        public string _statusMessage
-        {
-            get => _statusMessage;
-            set
-            {
-                _statusMessage = value;
-                OnPropertyChanged();
-            }   
-        }
-        public string Password
-        {
-            get => _password;
-            set
-            {
-                _password = value;
-                OnPropertyChanged();
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
+    }
 
-                PasswordScore = PasswordStrengthEvaluator.Evalaute(value);
-                PasswordLevel = PasswordStrengthEvaluateor.GetLevel(PasswordScore);
+    public string Password
+    {
+        get => _password;
+        set
+        {
+            if (SetProperty(ref _password, value))
+            {
+                PasswordScore = PasswordStrengthEvaluator.Evaluate(value);
+                PasswordLevel = PasswordStrengthEvaluator.GetLevel(PasswordScore);
+                UpdateCommandState();
+            }
+        }
+    }
 
-                CanEncrypt = PasswordScore >= MinimumPasswordScore;
-            }
-        }
-        public bool _canEncrypt
+    public int PasswordScore
+    {
+        get => _passwordScore;
+        private set => SetProperty(ref _passwordScore, value);
+    }
+
+    public string PasswordLevel
+    {
+        get => _passwordLevel;
+        private set => SetProperty(ref _passwordLevel, value);
+    }
+
+    public bool CanEncrypt =>
+        !string.IsNullOrWhiteSpace(SelectedFilePath)
+        && File.Exists(SelectedFilePath)
+        && !string.IsNullOrWhiteSpace(Password)
+        && PasswordScore >= MinimumPasswordScore;
+
+    public ICommand BrowseFileCommand { get; }
+
+    public ICommand EncryptCommand { get; }
+
+    public ICommand DecryptCommand { get; }
+
+    public EncryptionViewModel()
+    {
+        BrowseFileCommand = new RelayCommand(_ => BrowseFile());
+        EncryptCommand = new RelayCommand(_ => Encrypt(), _ => CanEncrypt);
+        DecryptCommand = new RelayCommand(_ => Decrypt(), _ => CanEncrypt);
+    }
+
+    private void BrowseFile()
+    {
+        var dialog = new OpenFileDialog();
+        if (dialog.ShowDialog() == true)
         {
-            get => _canEncrypt;
-            set
-            {
-                _canEncrypt = value;
-                OnPropertyChanged();
-            }
+            SelectedFilePath = dialog.FileName;
+            StatusMessage = "File selected.";
+        }
+    }
+
+    private void Encrypt()
+    {
+        if (!CanEncrypt)
+        {
+            StatusMessage = "File or password is not ready.";
+            return;
         }
 
-        public ICommand BrowseFileCommand { get; }
-        public ICommand EncryptCommand { get; }
-        public ICommand DecryptCommand { get; }
+        try
+        {
+            var output = _cryptoService.EncryptFile(SelectedFilePath, Password);
+            StatusMessage = $"Encrypted: {output}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Encryption failed: {ex.Message}";
+        }
+    }
 
-        public EncryptionViewModel()
+    private void Decrypt()
+    {
+        if (!CanEncrypt)
         {
-            BrowseFileCommand = new RelayCommand(_ => BrowseFile());
-            EncryptCommand = new RelayCommand(_ => Encrypt());
-            DecryptCommand = new RelayCommand(_ => Decrypt());
-            _statusMessage = "파일을 선택하세요";
+            StatusMessage = "File or password is not ready.";
+            return;
         }
-        private void BrowseFile()
+
+        try
         {
-            var dialog = new OpenFileDialog();
-            if(dialog.ShowDialog() == true)
-            {
-                SelectedFilePath = dialog.FileName;
-                StatusMessage = "파일 선택 완료";
-            }
+            var output = _cryptoService.DecryptFile(SelectedFilePath, Password);
+            StatusMessage = $"Decrypted: {output}";
         }
-        // 파일 암호화
-        private void Encrypt()
+        catch (Exception ex)
         {
-            if(string.IsNullOrEmpty(SelectedFilePath))
-            {
-                StatusMessage = "일단 파일을 선택하쇼";
-                return;
-            }
-            else if (string.IsNullOrWhiteSpace(Password))
-            {
-                StatusMessage = "비밀번호 입력해주쇼";
-                return;
-            }  
-            else if (!CanEncrypt)
-            {
-                StatusMessage = "비밀번호가 너무 쉽당 응 너 차단";
-                return;
-            }
-            try
-            {
-                _cryptoService.EncryptFile(SelectedFilePath, Password);
-                StatusMessage = "파일 암호화 했슴당"
-            }
-            catch 
-            {
-                StatusMessage = "하다가 오류 걸림 ㅜ"
-            }   
+            StatusMessage = $"Decryption failed: {ex.Message}";
         }
-        //파일 복호화
-        private void Decrypt()
-        {
-            if(string.IsNullOrEmpty(SelectedFilePath))
-            {
-                StatusMessage = "일단 파일을 선택하쇼";
-                return;
-            }
-            else if (string.IsNullOrWhiteSpace(Password))
-            {
-                StatusMessage = "비밀번호 입력해주쇼";
-                return;
-            }
-            else if (!CanDecrypt)
-            {
-                StatusMessage = "비밀번호가 너무 쉽당 응 너 차단";
-                return;
-            }
-            try
-            {
-                _CryptoService.DecryptFile(SelectedFilePath, Password);
-                StatusMessage = "파일 복호화 완료 했슴당";
-            }
-            catch
-            {
-                StatusMessage = "실패함 ㅜㅜ 비밀번호 확인 좀 하쇼"
-            }
-        }
-        public int _passwordScore
-        {
-            get => _passwordScore;
-            set
-            {
-                _passwordScorre = value;
-                OnPropertyChanged();
-            }
-        }
-        public string _PasswordLevel
-        {
-            get => _passwordLevel;
-            set
-            {
-                _passwordLevel = value;
-                OnPropertyChanged();
-            }
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    private void UpdateCommandState()
+    {
+        OnPropertyChanged(nameof(CanEncrypt));
+        CommandManager.InvalidateRequerySuggested();
     }
 }

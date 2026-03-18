@@ -1,125 +1,162 @@
+﻿using System;
 using System.Collections.ObjectModel;
-using SecurityProgram.Core.Monitoring;
+using System.Diagnostics;
+using System.Windows;
+using SecurityProgram.App.Core.Monitoring;
 using SecurityProgram.App.Models;
 
-namespace SecurityProgram.App.ViewModels
+namespace SecurityProgram.App.ViewModels;
+
+public class EventLogViewModel : ViewModelBase
 {
-    //Add checkbox status
+    private readonly EventLogMonitorService _monitorService;
+
     private bool _showError = true;
     private bool _showWarning = true;
     private bool _showFailure = true;
-    public bool _showError
+    private string _filterInfo = "Filtering: Error, Warning, FailureAudit (EventID:4625)";
+    private string _alertMessage = string.Empty;
+
+    private int _failedLoginCount;
+    private DateTime _windowStartTime = DateTime.Now;
+
+    private const int FailedLoginThreshold = 5;
+    private static readonly TimeSpan MonitoringWindow = TimeSpan.FromMinutes(5);
+
+    public ObservableCollection<EventLogItem> Events { get; } = new();
+
+    public bool ShowError
     {
         get => _showError;
         set
         {
-            _showError = value;
-            UpdateFilters();
-            OnPropertyChanged();
+            if (SetProperty(ref _showError, value))
+            {
+                UpdateFilters();
+            }
         }
     }
-    public bool _showWarning
+
+    public bool ShowWarning
     {
         get => _showWarning;
         set
         {
-            _showWarning = value;
-            UpdateFilters();
-            OnPropertyChanged();
+            if (SetProperty(ref _showWarning, value))
+            {
+                UpdateFilters();
+            }
         }
     }
-    public bool _showFailure
+
+    public bool ShowFailure
     {
         get => _showFailure;
         set
         {
-            _showFailure = value;
-            UpdateFilters();
-            OnPropertyChanged();
+            if (SetProperty(ref _showFailure, value))
+            {
+                UpdateFilters();
+            }
         }
     }
-    //Update filter status
+
+    public string FilterInfo
+    {
+        get => _filterInfo;
+        private set => SetProperty(ref _filterInfo, value);
+    }
+
+    public string AlertMessage
+    {
+        get => _alertMessage;
+        private set => SetProperty(ref _alertMessage, value);
+    }
+
+    public EventLogViewModel()
+    {
+        _monitorService = new EventLogMonitorService();
+        _monitorService.OnEventReceived += OnEventReceived;
+
+        UpdateFilters();
+
+        try
+        {
+            _monitorService.Start();
+        }
+        catch (Exception ex)
+        {
+            FilterInfo = $"Event monitoring unavailable: {ex.Message}";
+        }
+    }
+
     private void UpdateFilters()
     {
         _monitorService.AllowedTypes.Clear();
-        if (_showError)
+
+        if (ShowError)
+        {
             _monitorService.AllowedTypes.Add(EventLogEntryType.Error);
-        else if (_showWarning)
+        }
+
+        if (ShowWarning)
+        {
             _monitorService.AllowedTypes.Add(EventLogEntryType.Warning);
-        else if (_showFailure)
+        }
+
+        if (ShowFailure)
+        {
             _monitorService.AllowedTypes.Add(EventLogEntryType.FailureAudit);
-        
-        FilterInfo = $"표시 중: login fail(4625)" +
-                     $"{ShowError ? "Error " : ""}" +
-                     $"{ShowWarning ? "Warning " : ""}" +
-                     $"{ShowFailure ? "Failure " : ""}" ;          
-        UpdateFilters();
+        }
+
+        var status =
+            $"Filtering: {(ShowError ? "Error " : string.Empty)}" +
+            $"{(ShowWarning ? "Warning " : string.Empty)}" +
+            $"{(ShowFailure ? "FailureAudit" : string.Empty)} (EventID:4625)";
+
+        FilterInfo = status.Trim();
     }
 
-    public class EventLogViewModel : ViewModelBase
+    private void OnEventReceived(EventLogItem item)
     {
-        private readonly EventLogMonitorService _monitorService;
-        public ObservableCollection<EventLogItem> Events { get; } = new();
-        //Start Monitoring
-        public EventLogViewModel()
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null)
         {
-            _monitorService = new EventLogMonitorService();
-            _monitorService.OnEventReceived += AddEvent;
-            _monitorService.Start();
+            return;
         }
-        private void OnEventReceived(EventLogItem item)
+
+        dispatcher.Invoke(() =>
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Events.Insert(0, item);
+            if (Events.Count > 500)
             {
-                EventLogs.Insert(0, item);
-                if (item.EventId == 4625)
-                {
-                    HandlerFailedLogin();
-                }
-            });
-        }
-        //display filter status
-        private string _filterInfo = "표시: 오류 / 실패 / 경고";
-        public string _filterInfo{
-            get => _filterInfo;
-            set
-            {
-                _filterInfo = value;
-                OnPropertyChanged();
+                Events.RemoveAt(Events.Count - 1);
             }
-        } 
+
+            if (item.EventId == 4625)
+            {
+                HandleFailedLogin();
+            }
+        });
     }
-    //Add Counter, Timer
-    private int _failedLoginCount = 0;
-    private DateTime _WindowStartTime = DateTime.Now;
-    //로그인 실패 누적 5회 ->  5분 제한 및 경고 메세지 
-    private const int FailedLoginThreshold =  5;
-    private readonly TimeSpan MonitoringWindow = TimeSpan.FromMinutes(5);
-    private string _alertMessage;
-    public string _alertMessage
-    {
-        get => _alertMessage;
-        set
-        {
-            _alertMessage = value;
-            OnPropertyChanged();
-        }
-    }
-    //accumulate fail handle
+
     private void HandleFailedLogin()
     {
         var now = DateTime.Now;
-        //시간 초과시 초기화
+
         if (now - _windowStartTime > MonitoringWindow)
         {
             _failedLoginCount = 0;
             _windowStartTime = now;
             AlertMessage = string.Empty;
         }
+
         _failedLoginCount++;
+
         if (_failedLoginCount >= FailedLoginThreshold)
         {
-            AlertMessage = $" 로그인 실패ㅜ {_failedLoginCount}회 발생 (Brute-force 공격 의심됨.) 5분간 로그인 제한.";
+            AlertMessage =
+                $"Warning: {_failedLoginCount} failed logins detected within 5 minutes.";
         }
     }
 }

@@ -1,62 +1,65 @@
-<UserControl x:Class="SecurityProgram.App.Views.EventLogView"
+﻿<UserControl x:Class="SecurityProgram.App.Views.EventLogView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
-        <!--Title (EventLog)-->
-        <TextBlock Text = "이벤트로그 모니터링"
-                   FontSize = "24"
-                   FontWeight = "Bold"
-                   Margin = "0,0,0,15" />
-        <DataGrid ItemSource = "{Binding Events}"
-                  AutoGenerateColumns = "False"
-                  GridLinesVisibility = "None"
-                  CanUserAddRows = "False" >
-        <!-- Add Filter status-->
-        <TextBlock Text = "{Binding FilterInfo}"
-                   FontSize = "12"
-                   Foreground = "LightGray"
-                   Margin = "0,0,0,10" />
-        <StackPanel Orietation = "Horizontal"
-                    Margin = "0,0,10,0">
-            <CheckBox Content = "Error"
-                      IsChecked = "{Binding ShowError}"
-                      Margin = "0,0,10,0" />
-            <CheckBox Content = "Warning"
-                      IsChecked = "{Binding ShowWarning}"
-                      Margin = "0,0,10,0" />
-            <CheckBox Content = "Failure"
-                      IsChecked = "{Binding ShowFailure}"
-                      Margin = "0,0,10,0" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Event Log Monitoring"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,10" />
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Margin="0,0,0,10">
+            <CheckBox Content="Error"
+                      IsChecked="{Binding ShowError}"
+                      Margin="0,0,12,0" />
+            <CheckBox Content="Warning"
+                      IsChecked="{Binding ShowWarning}"
+                      Margin="0,0,12,0" />
+            <CheckBox Content="Failure"
+                      IsChecked="{Binding ShowFailure}" />
         </StackPanel>
 
-            <DataGridColumns> 
-                <!--시간 데이터를 화면에 표시-->
-                <DataGridTextColumn Header = "Time" 
-                                    Binding = "{Binding TimeGenerated}"
-                                    Width = "160" />
-                <!--소스데이터를 화면에 표시-->
-                <DataGridTextColumn Header = "Source" 
-                                    Binding = "{Binding Source}"
-                                    Width = "130" />
-                <!--유형 데이터를 화면에 표시-->
-                <DataGridTextColumn Header = "Type" 
-                                    Binding = "{Binding EntryType}"
-                                    Width = "100" />
-                <!--메세지 데이터를 화면에 표시-->
-                <DataGridTextColumn Header = "Message" 
-                                    Binding = "{Binding Message}"
-                                    Width = "*" />
-                <!--이벤트ID 데이터를 화면에 표시-->
-                <DataGridTextColumn Header = "Event ID"
-                                    Binding = "{Binding EventId}"
-                                    Width = "90" />
-                <!--Event ID
-                    4625 : login fail (로그인 실패)
-                    4624 : login sucess (로그인 성공)
-                    4672 : Admin privileges login (관리자 권한 로그인)
-                    4720 : Create User account (사용자 계정 생성)
-                -->
-            </DataGridColumns>
+        <DataGrid Grid.Row="2"
+                  ItemsSource="{Binding Events}"
+                  AutoGenerateColumns="False"
+                  GridLinesVisibility="None"
+                  CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time"
+                                    Binding="{Binding TimeGenerated}"
+                                    Width="170" />
+                <DataGridTextColumn Header="Source"
+                                    Binding="{Binding Source}"
+                                    Width="150" />
+                <DataGridTextColumn Header="Type"
+                                    Binding="{Binding EntryType}"
+                                    Width="120" />
+                <DataGridTextColumn Header="Message"
+                                    Binding="{Binding Message}"
+                                    Width="*" />
+                <DataGridTextColumn Header="Event ID"
+                                    Binding="{Binding EventId}"
+                                    Width="90" />
+            </DataGrid.Columns>
         </DataGrid>
+
+        <StackPanel Grid.Row="3" Margin="0,10,0,0">
+            <TextBlock Text="{Binding FilterInfo}"
+                       FontSize="12"
+                       Foreground="DimGray" />
+            <TextBlock Text="{Binding AlertMessage}"
+                       FontSize="12"
+                       Foreground="DarkRed"
+                       TextWrapping="Wrap" />
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -1,36 +1,54 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace SecurityProgram.App.Behaviors
+namespace SecurityProgram.App.Behaviors;
+
+public static class PasswordBoxHelper
 {
-    public static class PasswordBoxHelper
+    public static readonly DependencyProperty BoundPasswordProperty = DependencyProperty.RegisterAttached(
+        "BoundPassword",
+        typeof(string),
+        typeof(PasswordBoxHelper),
+        new PropertyMetadata(string.Empty, OnBoundPasswordChanged));
+
+    private static readonly DependencyProperty IsUpdatingProperty = DependencyProperty.RegisterAttached(
+        "IsUpdating",
+        typeof(bool),
+        typeof(PasswordBoxHelper),
+        new PropertyMetadata(false));
+
+    public static string GetBoundPassword(DependencyObject obj) =>
+        (string)obj.GetValue(BoundPasswordProperty);
+
+    public static void SetBoundPassword(DependencyObject obj, string value) =>
+        obj.SetValue(BoundPasswordProperty, value);
+
+    private static void OnBoundPasswordChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        public static readonly DependencyProperty BoundPasswordProperty = DependencyProperty.RegisterAttached("BoundPassword",
-            typeof(string),
-            typeof(PasswordBoxHelper),
-            new PropertyMetadata(string.Empty, OnBoundPasswordChanged));
-        public static string GetBoundPassword(DependencyObject obj)
-            => (string)obj.GetValue(BoundPasswordProperty);
-        public static void SetBoundPassword(DependencyObject obj, string value)
-            => obj.SetValue(BoundPasswordProperty, value);
-        private static void OnBoundPasswordChanged(
-            DependencyObject d,
-            DependencyPropertyChangedArgs e)
+        if (d is not PasswordBox passwordBox)
         {
-            if(d is PasswordBox passwordBox)
-            {
-                passwordBox.PasswordChanged -= PasswordBox_PasswordChanged;
-                if(!passwordBox.Password.Equals(e.NewVaule))
-                    passwordBox.Password = e.NewVaule?.ToString();
-                    passwordBox.PasswordChanged += PasswordBox_PasswordChanged;
-            }
+            return;
         }
-        private static void PasswordBox _PasswordChagned(object sender, RoutedEventArgs e)
+
+        passwordBox.PasswordChanged -= PasswordBoxPasswordChanged;
+
+        if (!(bool)passwordBox.GetValue(IsUpdatingProperty))
         {
-            if(sender is PasswordBox passwordBox)
-            {
-                SetBoundPassword(passwordBox, passwordBox.Password);
-            }
+            passwordBox.Password = e.NewValue?.ToString() ?? string.Empty;
         }
+
+        passwordBox.PasswordChanged += PasswordBoxPasswordChanged;
+    }
+
+    private static void PasswordBoxPasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (sender is not PasswordBox passwordBox)
+        {
+            return;
+        }
+
+        passwordBox.SetValue(IsUpdatingProperty, true);
+        SetBoundPassword(passwordBox, passwordBox.Password);
+        passwordBox.SetValue(IsUpdatingProperty, false);
     }
 }

@@ -1,11 +1,83 @@
-<UserControl x:Class="SecurityProgram.App.Views.NetworkView"
+﻿<UserControl x:Class="SecurityProgram.App.Views.NetworkView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
-        <TextBook Text = "로컬 네트워크 포트 화면"
-                  FontSize = "24"
-                  FontWeight = "Bold"
-                  HorizontalAlignment = "Center"
-                  VerticalAlignment = "Center" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Local Network Exposure"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,10" />
+
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Content="Refresh"
+                    Width="100"
+                    Margin="0,0,10,0"
+                    Command="{Binding RefreshCommand}" />
+
+            <Button Grid.Column="1"
+                    Content="Copy Snapshot"
+                    Width="120"
+                    Margin="0,0,10,0"
+                    Command="{Binding CopySnapshotCommand}" />
+
+            <CheckBox Grid.Column="2"
+                      Content="Show high-risk only"
+                      VerticalAlignment="Center"
+                      Margin="0,0,16,0"
+                      IsChecked="{Binding ShowOnlyRisky}" />
+
+            <TextBox Grid.Column="3"
+                     Height="30"
+                     VerticalContentAlignment="Center"
+                     Text="{Binding FilterKeyword, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Filter by protocol, address, port, process name, or PID" />
+        </Grid>
+
+        <TextBlock Grid.Row="2"
+                   Margin="0,0,0,8"
+                   Foreground="DimGray"
+                   Text="{Binding ScanSummary}" />
+
+        <DataGrid Grid.Row="3"
+                  ItemsSource="{Binding Connections}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  GridLinesVisibility="None">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding RiskLevel}" Value="High">
+                            <Setter Property="Background" Value="#30FFB3B3" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="90" />
+                <DataGridTextColumn Header="Local Address" Binding="{Binding LocalAddress}" Width="180" />
+                <DataGridTextColumn Header="Foreign Address" Binding="{Binding ForeignAddress}" Width="180" />
+                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="110" />
+                <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" />
+                <DataGridTextColumn Header="Process" Binding="{Binding ProcessName}" Width="150" />
+                <DataGridTextColumn Header="Risk" Binding="{Binding RiskLevel}" Width="90" />
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>
