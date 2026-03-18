@@ -21,7 +21,7 @@ public class PasswordViewModel : ViewModelBase
     private int _passwordScore;
     private string _passwordLevel = "Weak";
     private double _estimatedEntropyBits;
-    private string _feedbackMessage = "Enter a password to analyze its strength.";
+    private string _feedbackMessage = "비밀번호를 입력하면 강도를 분석합니다.";
     private string _generatedPassword = string.Empty;
 
     public string PasswordInput
@@ -49,6 +49,8 @@ public class PasswordViewModel : ViewModelBase
         get => _passwordLevel;
         private set => SetProperty(ref _passwordLevel, value);
     }
+
+    public string PasswordLevelKorean => ToKoreanLevel(PasswordLevel);
 
     public double EstimatedEntropyBits
     {
@@ -89,6 +91,7 @@ public class PasswordViewModel : ViewModelBase
     {
         PasswordScore = PasswordStrengthEvaluator.Evaluate(PasswordInput);
         PasswordLevel = PasswordStrengthEvaluator.GetLevel(PasswordScore);
+        OnPropertyChanged(nameof(PasswordLevelKorean));
         EstimatedEntropyBits = EstimateEntropy(PasswordInput);
 
         UpdateRuleChecklist();
@@ -99,62 +102,62 @@ public class PasswordViewModel : ViewModelBase
     {
         RuleChecklist.Clear();
 
-        AddRule("Length 12+ characters", PasswordInput.Length >= 12);
-        AddRule("Contains lowercase letter", PasswordInput.Any(char.IsLower));
-        AddRule("Contains uppercase letter", PasswordInput.Any(char.IsUpper));
-        AddRule("Contains number", PasswordInput.Any(char.IsDigit));
-        AddRule("Contains special character", PasswordInput.Any(ch => !char.IsLetterOrDigit(ch)));
-        AddRule("Avoids 3+ repeated chars", !HasRepeatedCharacters(PasswordInput, 3));
+        AddRule("길이 10자 이상", PasswordInput.Length >= 10);
+        AddRule("소문자를 필수로 포함해야 합니다.", PasswordInput.Any(char.IsLower));
+        AddRule("대문자를 필수로 포함해야 합니다.", PasswordInput.Any(char.IsUpper));
+        AddRule("숫자를 필수로 포함해야 합니다.", PasswordInput.Any(char.IsDigit));
+        AddRule("특수문자를 필수로 포함해야 합니다.", PasswordInput.Any(ch => !char.IsLetterOrDigit(ch)));
+        AddRule("동일 문자 2회 이상 반복 없음", !HasRepeatedCharacters(PasswordInput, 2));
     }
 
     private void AddRule(string rule, bool passed)
     {
-        RuleChecklist.Add($"[{(passed ? "OK" : "NO")}] {rule}");
+        RuleChecklist.Add($"[{(passed ? "OK" : "FAIL")}] {rule}");
     }
 
     private void UpdateFeedback()
     {
         if (string.IsNullOrEmpty(PasswordInput))
         {
-            FeedbackMessage = "Enter a password to analyze its strength.";
+            FeedbackMessage = "비밀번호를 입력하면 강도를 분석합니다.";
             return;
         }
 
         var missing = new List<string>();
 
-        if (PasswordInput.Length < 12)
+        if (PasswordInput.Length < 10)
         {
-            missing.Add("use at least 12 characters");
+            missing.Add("길이를 10자 이상으로 늘리기");
         }
 
         if (!PasswordInput.Any(char.IsLower))
         {
-            missing.Add("add lowercase letters");
+            missing.Add("소문자 추가");
         }
 
         if (!PasswordInput.Any(char.IsUpper))
         {
-            missing.Add("add uppercase letters");
+            missing.Add("대문자 추가");
         }
 
         if (!PasswordInput.Any(char.IsDigit))
         {
-            missing.Add("add numbers");
+            missing.Add("숫자 추가");
         }
 
         if (!PasswordInput.Any(ch => !char.IsLetterOrDigit(ch)))
         {
-            missing.Add("add special characters");
+            missing.Add("특수문자 추가");
         }
 
         if (missing.Count == 0 && PasswordScore >= 80)
         {
-            FeedbackMessage = "Strong password profile. Suitable for high-sensitivity accounts.";
+            FeedbackMessage = "강한 비밀번호입니다. 보안이 중요한 계정에 사용하기 적합합니다.";
             return;
         }
 
         FeedbackMessage =
-            $"Current level: {PasswordLevel}. Improve by: {string.Join(", ", missing)}.";
+            $"현재 등급: {ToKoreanLevel(PasswordLevel)}. 개선 항목: {string.Join(", ", missing)}";
     }
 
     private void GenerateSamplePassword()
@@ -172,7 +175,7 @@ public class PasswordViewModel : ViewModelBase
         }
 
         Clipboard.SetText(PasswordInput);
-        FeedbackMessage = "Password copied to clipboard.";
+        FeedbackMessage = "비밀번호를 클립보드에 복사했습니다.";
     }
 
     private void ClearAll()
@@ -279,5 +282,16 @@ public class PasswordViewModel : ViewModelBase
             var swapIndex = RandomNumberGenerator.GetInt32(index + 1);
             (chars[index], chars[swapIndex]) = (chars[swapIndex], chars[index]);
         }
+    }
+
+    private static string ToKoreanLevel(string level)
+    {
+        return level switch
+        {
+            "Weak" => "약함",
+            "Medium" => "보통",
+            "Strong" => "강함",
+            _ => level,
+        };
     }
 }

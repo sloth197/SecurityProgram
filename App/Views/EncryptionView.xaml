@@ -42,10 +42,71 @@
                              Height="18"
                              Value="{Binding PasswordScore, Mode=OneWay}"
                              Margin="0,5,0,5" />
-                <TextBlock Text="{Binding PasswordLevel}"
-                           FontWeight="SemiBold"
-                           Foreground="DarkGray"
-                           Margin="0,0,0,6" />
+
+                <Border Margin="0,0,0,8"
+                        Padding="10"
+                        CornerRadius="6">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#FFF4F4F5" />
+                            <Setter Property="BorderBrush" Value="#FF9CA3AF" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasPassword}" Value="False">
+                                    <Setter Property="Background" Value="#FFF4F4F5" />
+                                    <Setter Property="BorderBrush" Value="#FF9CA3AF" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ShowWeakWarning}" Value="True">
+                                    <Setter Property="Background" Value="#FFFFECEC" />
+                                    <Setter Property="BorderBrush" Value="#FFDC2626" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ShowWeakWarning}" Value="False">
+                                    <Setter Property="Background" Value="#FFEAFBF1" />
+                                    <Setter Property="BorderBrush" Value="#FF16A34A" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+
+                    <StackPanel>
+                        <TextBlock Text="{Binding PasswordLevelDisplay}"
+                                   FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#FF374151" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ShowWeakWarning}" Value="True">
+                                            <Setter Property="Foreground" Value="#FFB91C1C" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ShowWeakWarning}" Value="False">
+                                            <Setter Property="Foreground" Value="#FF166534" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <TextBlock Text="{Binding PasswordStatusMessage}"
+                                   Margin="0,4,0,0"
+                                   FontSize="12"
+                                   TextWrapping="Wrap">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#FF4B5563" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ShowWeakWarning}" Value="True">
+                                            <Setter Property="Foreground" Value="#FFB91C1C" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ShowWeakWarning}" Value="False">
+                                            <Setter Property="Foreground" Value="#FF166534" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
                 <TextBlock Text="{Binding InputHint}"
                            Foreground="DimGray"
                            Margin="0,0,0,15"

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.Win32;
 using SecurityProgram.App.Commands;
@@ -19,6 +21,7 @@ public class EncryptionViewModel : ViewModelBase
     private string _password = string.Empty;
     private int _passwordScore;
     private string _passwordLevel = "Weak";
+    private string _passwordStatusMessage = "Enter a password to evaluate strength.";
     private string _inputHint = "Step 1: Select a file. Step 2: Enter a password.";
 
     public string SelectedFilePath
@@ -44,9 +47,10 @@ public class EncryptionViewModel : ViewModelBase
         get => _password;
         set
         {
-            if (SetProperty(ref _password, value))
+            var normalized = value ?? string.Empty;
+            if (SetProperty(ref _password, normalized))
             {
-                PasswordScore = PasswordStrengthEvaluator.Evaluate(value);
+                PasswordScore = PasswordStrengthEvaluator.Evaluate(normalized);
                 PasswordLevel = PasswordStrengthEvaluator.GetLevel(PasswordScore);
                 UpdateCommandState();
             }
@@ -65,6 +69,18 @@ public class EncryptionViewModel : ViewModelBase
         private set => SetProperty(ref _passwordLevel, value);
     }
 
+    public string PasswordStatusMessage
+    {
+        get => _passwordStatusMessage;
+        private set => SetProperty(ref _passwordStatusMessage, value);
+    }
+
+    public string PasswordLevelDisplay => $"Strength: {PasswordLevel} ({PasswordScore}/100)";
+
+    public bool HasPassword => !string.IsNullOrWhiteSpace(Password);
+
+    public bool ShowWeakWarning => HasPassword && PasswordScore < MinimumPasswordScore;
+
     public string InputHint
     {
         get => _inputHint;
@@ -74,13 +90,13 @@ public class EncryptionViewModel : ViewModelBase
     public bool CanEncrypt =>
         !string.IsNullOrWhiteSpace(SelectedFilePath)
         && File.Exists(SelectedFilePath)
-        && !string.IsNullOrWhiteSpace(Password)
+        && HasPassword
         && PasswordScore >= MinimumPasswordScore;
 
     public bool CanDecrypt =>
         !string.IsNullOrWhiteSpace(SelectedFilePath)
         && File.Exists(SelectedFilePath)
-        && !string.IsNullOrWhiteSpace(Password);
+        && HasPassword;
 
     public ICommand BrowseFileCommand { get; }
 
@@ -148,7 +164,13 @@ public class EncryptionViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(CanEncrypt));
         OnPropertyChanged(nameof(CanDecrypt));
+        OnPropertyChanged(nameof(PasswordLevelDisplay));
+        OnPropertyChanged(nameof(HasPassword));
+        OnPropertyChanged(nameof(ShowWeakWarning));
+
+        PasswordStatusMessage = BuildPasswordStatusMessage();
         InputHint = BuildInputHint();
+
         CommandManager.InvalidateRequerySuggested();
     }
 
@@ -164,7 +186,7 @@ public class EncryptionViewModel : ViewModelBase
             return "Selected file cannot be found. Please browse again.";
         }
 
-        if (string.IsNullOrWhiteSpace(Password))
+        if (!HasPassword)
         {
             return "Enter a password to continue.";
         }
@@ -175,5 +197,49 @@ public class EncryptionViewModel : ViewModelBase
         }
 
         return "Ready: Encrypt and Decrypt are available.";
+    }
+
+    private string BuildPasswordStatusMessage()
+    {
+        if (!HasPassword)
+        {
+            return "Enter a password to evaluate strength.";
+        }
+
+        if (!ShowWeakWarning)
+        {
+            return "Password strength is sufficient for encryption.";
+        }
+
+        var recommendations = new List<string>();
+
+        if (Password.Length < 12)
+        {
+            recommendations.Add("12+ characters");
+        }
+
+        if (!Password.Any(char.IsUpper))
+        {
+            recommendations.Add("uppercase");
+        }
+
+        if (!Password.Any(char.IsLower))
+        {
+            recommendations.Add("lowercase");
+        }
+
+        if (!Password.Any(char.IsDigit))
+        {
+            recommendations.Add("numbers");
+        }
+
+        if (!Password.Any(ch => !char.IsLetterOrDigit(ch)))
+        {
+            recommendations.Add("special symbols");
+        }
+
+        return recommendations.Count == 0
+            ? "Weak password. Increase complexity to improve protection."
+            : $"Weak password. Add: {string.Join(", ", recommendations)}.";
     }
 }

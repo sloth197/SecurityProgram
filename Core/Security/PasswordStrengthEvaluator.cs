@@ -18,7 +18,7 @@ public static partial class PasswordStrengthEvaluator
             score += 25;
         }
 
-        if (password.Length >= 12)
+        if (password.Length >= 10)
         {
             score += 10;
         }
@@ -48,7 +48,7 @@ public static partial class PasswordStrengthEvaluator
 
     public static string GetLevel(int score)
     {
-        if (score < 40)
+        if (score < 35)
         {
             return "Weak";
         }
