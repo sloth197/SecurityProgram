@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace SecurityProgram.App.Behaviors;
 
@@ -49,6 +50,7 @@ public static class PasswordBoxHelper
 
         passwordBox.SetValue(IsUpdatingProperty, true);
         SetBoundPassword(passwordBox, passwordBox.Password);
+        BindingOperations.GetBindingExpression(passwordBox, BoundPasswordProperty)?.UpdateSource();
         passwordBox.SetValue(IsUpdatingProperty, false);
     }
 }

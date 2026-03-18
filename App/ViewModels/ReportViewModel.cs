@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32;
 using SecurityProgram.App.Commands;
+using SecurityProgram.App.Core.Reporting;
 
 namespace SecurityProgram.App.ViewModels;
 
@@ -12,12 +14,14 @@ public class ReportViewModel : ViewModelBase
     private readonly PasswordViewModel _passwordViewModel;
     private readonly NetworkViewModel _networkViewModel;
     private readonly EventLogViewModel _eventLogViewModel;
+    private readonly PdfReportService _pdfReportService = new();
 
     private string _reportTitle = "Security Program - Snapshot Report";
     private string _analystName = Environment.UserName;
     private string _targetSystem = Environment.MachineName;
     private string _executiveSummary = "Summary of password posture, local network exposure, and event log monitoring status.";
     private string _reportPreview = "Generate preview to create a report draft.";
+    private string _pdfExportStatus = "PDF export not started.";
     private DateTime? _lastGeneratedAt;
 
     public string ReportTitle
@@ -50,6 +54,12 @@ public class ReportViewModel : ViewModelBase
         private set => SetProperty(ref _reportPreview, value);
     }
 
+    public string PdfExportStatus
+    {
+        get => _pdfExportStatus;
+        private set => SetProperty(ref _pdfExportStatus, value);
+    }
+
     public string LastGeneratedText => _lastGeneratedAt is null
         ? "Not generated yet."
         : $"Last generated: {_lastGeneratedAt:yyyy-MM-dd HH:mm:ss}";
@@ -57,6 +67,8 @@ public class ReportViewModel : ViewModelBase
     public ICommand GeneratePreviewCommand { get; }
 
     public ICommand CopyPreviewCommand { get; }
+
+    public ICommand ExportPdfCommand { get; }
 
     public ReportViewModel(
         PasswordViewModel passwordViewModel,
@@ -69,6 +81,7 @@ public class ReportViewModel : ViewModelBase
 
         GeneratePreviewCommand = new RelayCommand(_ => GeneratePreview());
         CopyPreviewCommand = new RelayCommand(_ => CopyPreview(), _ => !string.IsNullOrWhiteSpace(ReportPreview));
+        ExportPdfCommand = new RelayCommand(_ => ExportPdf());
     }
 
     private void GeneratePreview()
@@ -161,6 +174,7 @@ public class ReportViewModel : ViewModelBase
 
         _lastGeneratedAt = reportTime;
         OnPropertyChanged(nameof(LastGeneratedText));
+        PdfExportStatus = "Preview generated. Ready to export as PDF.";
 
         CommandManager.InvalidateRequerySuggested();
     }
@@ -173,5 +187,49 @@ public class ReportViewModel : ViewModelBase
         }
 
         Clipboard.SetText(ReportPreview);
+        PdfExportStatus = "Preview copied to clipboard.";
+    }
+
+    private void ExportPdf()
+    {
+        try
+        {
+            if (_lastGeneratedAt is null || string.IsNullOrWhiteSpace(ReportPreview))
+            {
+                GeneratePreview();
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Title = "Save Security Report",
+                Filter = "PDF files (*.pdf)|*.pdf",
+                DefaultExt = ".pdf",
+                AddExtension = true,
+                OverwritePrompt = true,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                FileName = $"SecurityReport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                PdfExportStatus = "PDF export canceled.";
+                return;
+            }
+
+            var generatedAt = _lastGeneratedAt ?? DateTime.Now;
+            var savedPath = _pdfReportService.ExportReport(
+                dialog.FileName,
+                ReportTitle,
+                AnalystName,
+                TargetSystem,
+                generatedAt,
+                ReportPreview);
+
+            PdfExportStatus = $"PDF export completed: {savedPath}";
+        }
+        catch (Exception ex)
+        {
+            PdfExportStatus = $"PDF export failed: {ex.Message}";
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="SecurityProgram.App.Views.ReportView"
+<UserControl x:Class="SecurityProgram.App.Views.ReportView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
@@ -7,6 +7,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -23,29 +24,37 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBox Grid.Row="0"
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Title" Margin="0,0,0,4" Foreground="DimGray" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="Analyst" Margin="0,0,0,4" Foreground="DimGray" />
+
+            <TextBox Grid.Row="1"
                      Grid.Column="0"
                      Margin="0,0,10,8"
                      Height="30"
                      VerticalContentAlignment="Center"
                      Text="{Binding ReportTitle, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBox Grid.Row="0"
+            <TextBox Grid.Row="1"
                      Grid.Column="1"
                      Height="30"
                      VerticalContentAlignment="Center"
                      Text="{Binding AnalystName, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBox Grid.Row="1"
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Target System" Margin="0,0,0,4" Foreground="DimGray" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="Executive Summary" Margin="0,0,0,4" Foreground="DimGray" />
+
+            <TextBox Grid.Row="3"
                      Grid.Column="0"
                      Margin="0,0,10,0"
                      Height="30"
                      VerticalContentAlignment="Center"
                      Text="{Binding TargetSystem, UpdateSourceTrigger=PropertyChanged}" />
 
-            <TextBox Grid.Row="1"
+            <TextBox Grid.Row="3"
                      Grid.Column="1"
                      Height="30"
                      VerticalContentAlignment="Center"
@@ -59,8 +68,12 @@
                     Command="{Binding GeneratePreviewCommand}" />
             <Button Content="Copy Preview"
                     Width="110"
-                    Margin="0,0,12,0"
+                    Margin="0,0,8,0"
                     Command="{Binding CopyPreviewCommand}" />
+            <Button Content="Export PDF"
+                    Width="100"
+                    Margin="0,0,12,0"
+                    Command="{Binding ExportPdfCommand}" />
             <TextBlock VerticalAlignment="Center"
                        Foreground="DimGray"
                        Text="{Binding LastGeneratedText}" />
@@ -72,6 +85,11 @@
                  AcceptsReturn="True"
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto"
-                 Text="{Binding ReportPreview}" />
+                 Text="{Binding ReportPreview, Mode=OneWay}" />
+
+        <TextBlock Grid.Row="4"
+                   Margin="0,8,0,0"
+                   Foreground="DarkSlateGray"
+                   Text="{Binding PdfExportStatus}" />
     </Grid>
 </UserControl>

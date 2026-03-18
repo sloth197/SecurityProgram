@@ -19,6 +19,7 @@ public class EncryptionViewModel : ViewModelBase
     private string _password = string.Empty;
     private int _passwordScore;
     private string _passwordLevel = "Weak";
+    private string _inputHint = "Step 1: Select a file. Step 2: Enter a password.";
 
     public string SelectedFilePath
     {
@@ -64,11 +65,22 @@ public class EncryptionViewModel : ViewModelBase
         private set => SetProperty(ref _passwordLevel, value);
     }
 
+    public string InputHint
+    {
+        get => _inputHint;
+        private set => SetProperty(ref _inputHint, value);
+    }
+
     public bool CanEncrypt =>
         !string.IsNullOrWhiteSpace(SelectedFilePath)
         && File.Exists(SelectedFilePath)
         && !string.IsNullOrWhiteSpace(Password)
         && PasswordScore >= MinimumPasswordScore;
+
+    public bool CanDecrypt =>
+        !string.IsNullOrWhiteSpace(SelectedFilePath)
+        && File.Exists(SelectedFilePath)
+        && !string.IsNullOrWhiteSpace(Password);
 
     public ICommand BrowseFileCommand { get; }
 
@@ -80,7 +92,8 @@ public class EncryptionViewModel : ViewModelBase
     {
         BrowseFileCommand = new RelayCommand(_ => BrowseFile());
         EncryptCommand = new RelayCommand(_ => Encrypt(), _ => CanEncrypt);
-        DecryptCommand = new RelayCommand(_ => Decrypt(), _ => CanEncrypt);
+        DecryptCommand = new RelayCommand(_ => Decrypt(), _ => CanDecrypt);
+        UpdateCommandState();
     }
 
     private void BrowseFile()
@@ -114,7 +127,7 @@ public class EncryptionViewModel : ViewModelBase
 
     private void Decrypt()
     {
-        if (!CanEncrypt)
+        if (!CanDecrypt)
         {
             StatusMessage = "File or password is not ready.";
             return;
@@ -134,6 +147,33 @@ public class EncryptionViewModel : ViewModelBase
     private void UpdateCommandState()
     {
         OnPropertyChanged(nameof(CanEncrypt));
+        OnPropertyChanged(nameof(CanDecrypt));
+        InputHint = BuildInputHint();
         CommandManager.InvalidateRequerySuggested();
+    }
+
+    private string BuildInputHint()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedFilePath))
+        {
+            return "Select a file to enable actions.";
+        }
+
+        if (!File.Exists(SelectedFilePath))
+        {
+            return "Selected file cannot be found. Please browse again.";
+        }
+
+        if (string.IsNullOrWhiteSpace(Password))
+        {
+            return "Enter a password to continue.";
+        }
+
+        if (!CanEncrypt)
+        {
+            return $"Encrypt requires score {MinimumPasswordScore}+ (current: {PasswordScore}). Decrypt is available.";
+        }
+
+        return "Ready: Encrypt and Decrypt are available.";
     }
 }
